@@ -1,11 +1,21 @@
-CreateButtonWidget:
+MainPageWidget:
 
-<CreateButtonWidget@GridLayout>:
-    cols: 3
-    Button:
-        text:"Create"
-        on_press: root.create_markdown()
-    Label:
-        text:"Hello"
+<MainPageWidget@BoxLayout>:
+    orientation: "horizontal"
+
+    BoxLayout:
+        id: md_files
+        size_hint: .3,1
+        orientation: "vertical"
+        Button:
+            text:"Create Markdown file"
+            on_press: root.create_markdown()
+
+    BoxLayout:
+        TextInput:
+            id: md_text_field
+            text:"Hello"
+
+
 
 
