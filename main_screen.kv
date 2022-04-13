@@ -1,0 +1,34 @@
+#: import MainScreen main_screen.MainScreen
+
+MainScreen:
+    name: "MainScreen"
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            size_hint: 0.5,.05
+            orientation: "horizontal"
+            Button:
+                id: create_md
+                text: "Create Markdown file"
+                on_press: root.create_markdown()
+            Button:
+                id: mainpage_settings
+                text: "Settings"
+                on_press:
+                    app.root.current = "MainSettings"
+                    root.manager.transition.direction = "left"
+
+        BoxLayout:
+            orientation: "horizontal"
+
+            BoxLayout:
+                id: tree_views
+                size_hint: .3,1
+                orientation: "vertical"
+
+
+
+            BoxLayout:
+                CodeInput:
+                    id: box_for_codeinput
+                    text: "This is a Node"

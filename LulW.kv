@@ -11,11 +11,11 @@ WindowManager:
             orientation: "horizontal"
             Button:
                 id: create_md
-                text:"Create Markdown file"
+                text: "Create Markdown file"
                 on_press: root.create_markdown()
             Button:
                 id: mainpage_settings
-                text:"Settings"
+                text: "Settings"
                 on_press:
                     app.root.current = "MainSettings"
                     root.manager.transition.direction = "left"

@@ -1,0 +1,18 @@
+#: import MainScreen setting_screen.SettingScreen
+
+SettingScreen:
+    name: "MainSettings"
+    BoxLayout:
+        Button:
+            text: "Back"
+            on_press:
+                app.root.current = "MainScreen"
+                root.manager.transition.direction = "right"
+
+        Label:
+            text:"Change Markdown Directory"
+
+        TextInput:
+            id: set_md_directory
+            multiline: False
+            on_text_validate: root.change_md_directory_path()
