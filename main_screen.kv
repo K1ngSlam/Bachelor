@@ -2,33 +2,34 @@
 
 MainScreen:
     name: "MainScreen"
-    BoxLayout:
+    MDBoxLayout:
         orientation: "vertical"
-        BoxLayout:
+        MDBoxLayout:
             size_hint: 0.5,.05
             orientation: "horizontal"
-            Button:
+            MDRaisedButton:
                 id: create_md
                 text: "Create Markdown file"
                 on_press: root.create_markdown()
-            Button:
+            MDRaisedButton:
                 id: mainpage_settings
                 text: "Settings"
                 on_press:
                     app.root.current = "MainSettings"
                     root.manager.transition.direction = "left"
 
-        BoxLayout:
+        MDBoxLayout:
             orientation: "horizontal"
 
-            BoxLayout:
+            MDBoxLayout:
                 id: tree_views
                 size_hint: .3,1
                 orientation: "vertical"
 
 
 
-            BoxLayout:
+            MDBoxLayout:
                 CodeInput:
                     id: box_for_codeinput
                     text: "This is a Node"
+                    on_focus: root.on_focus(self,self.focus)

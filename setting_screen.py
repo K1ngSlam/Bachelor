@@ -1,9 +1,10 @@
 from logging import Logger
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
+from kivymd.uix.screen import MDScreen
 
 
-class SettingScreen(Screen):
+class SettingScreen(MDScreen):
 
     def change_md_directory_path(self):
         App.get_running_app().directory_path = self.ids.set_md_directory.text

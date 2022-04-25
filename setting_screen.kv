@@ -2,17 +2,29 @@
 
 SettingScreen:
     name: "MainSettings"
-    BoxLayout:
-        Button:
-            text: "Back"
-            on_press:
-                app.root.current = "MainScreen"
-                root.manager.transition.direction = "right"
+    md_bg_color: 0, 0, 0 ,1
+    MDIconButton:
+        icon: "home"
+        size_hint: 0.1, 0.2
+        pos_hint: { "x": 0, "top": 1 }
+        on_press:
+            app.root.current = "MainScreen"
+            root.manager.transition.direction = "right"
 
-        Label:
-            text:"Change Markdown Directory"
+    MDFloatLayout:
+        md_bg_color: 0, 0, 0, 1
+        line_color: 254, 0, 0, 1
+        size_hint: 0.9, 0.9
+        pos_hint: {"x": 0.05, "y": 0.05}
 
-        TextInput:
+
+        MDLabel:
+            text: "Change the Directory to search for the .Md-files"
+            pos_hint: {"x": 0.3, "y": 0.12}
+
+        MDTextField:
             id: set_md_directory
-            multiline: False
+            pos_hint: {"x": 0.3, "y": 0.5}
+            text: app.directory_path
+            size_hint: 0.5, 0.1
             on_text_validate: root.change_md_directory_path()
