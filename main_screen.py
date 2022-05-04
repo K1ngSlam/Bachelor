@@ -26,7 +26,8 @@ class MainScreen(MDScreen):
         self.first_entered = False
 
     def on_pre_enter(self,
-                     *args):  # Sollte nur beim ersten mal die TreeViews populaten oder vorher immer alles löschen?
+                     *args):
+        # Sollte nur beim ersten mal die TreeViews populaten oder vorher immer alles löschen?
         if not self.first_entered:
             self.first_entered = True
             self.yaml_list = fnmatch.filter(os.listdir(str(App.get_running_app().directory_path)), '*.yaml')
@@ -35,36 +36,35 @@ class MainScreen(MDScreen):
 
             if len(self.tv_list) != 0:
                 for tv in self.tv_list:
-                    self.ids.tree_views.add_widget(tv)
                     self.populate_tree_view(tv)
-
-            if self.node_list != 0:
-                app = App.get_running_app()
-                for node in self.node_list:
-                    content = app.read_yaml_file(node.timestamp)
-                    if not ("directory" in content):
-                        self.ids.tree_views.add_widget(node)
+            self.populate_nodes()
 
     def sortout_md_type(self, file_name):
         app = App.get_running_app()
         content = app.read_yaml_file(file_name)
         if "type" in content:
             if content.get("type") == "directory":
-                self.tv_list.append(TreeView(root_options=dict(text=content.get("title"))))
+                tv = TreeView(root_options=dict(text=content.get("title")))
+                self.tv_list.append(tv)
             if content.get("type") == "project":
                 self.project_list.append(file_name)
             if content.get("type") == "node":
-                self.node_list.append(
-                    TreeViewButton(timestamp=file_name.rstrip(".yaml"), text=str(content.get("title")),
-                                   on_press=self.write_text_to_codeinput, size_hint=(1, 0.15)))
+                tvb = TreeViewButton(timestamp=file_name.rstrip(".yaml"), text=str(content.get("title")),
+                                   on_press=self.write_text_to_codeinput, size_hint=(1, 0.15))
+                self.node_list.append(tvb)
 
     def create_markdown(self):
+        self.ids.tree_views.clear_widgets()
         timestamp_now = datetime.now()
         mdFile = MdUtils(file_name=str(timestamp_now), title='Markdown File Example')
         mdFile.create_md_file()
-        self.create_yaml(timestamp_now)
-        self.sortout_md_type(timestamp_now)
-        self.add_button_widget(timestamp_now)
+        self.create_yaml(str(timestamp_now))
+        self.sortout_md_type(str(timestamp_now))
+        if len(self.tv_list) != 0:
+            for tv in self.tv_list:
+                self.populate_tree_view(tv)
+        self.populate_nodes()
+
 
     def create_yaml(self, markdown_timestamp):
         yamlName = str(markdown_timestamp) + '.yaml'
@@ -77,22 +77,24 @@ class MainScreen(MDScreen):
         file = open(os.path.join(App.get_running_app().directory_path, yamlName), 'w')
         yaml.dump(data, file)
 
-    def add_button_widget(self, markdown_timestamp):
-        tvb = TreeViewButton(timestamp=str(markdown_timestamp), size_hint=(1, 0.1), text=str(markdown_timestamp))
-        tvb.bind(on_press=self.write_text_to_codeinput)
-        self.ids.tree_views.add_widget(tvb)
-
-    def update_tree_view(self):
-
-        pass
-
-    def populate_tree_view(self,
-                           tree_view):  # zum Updaten Liste der bereits vorhandenen widges mit der Node_list vergleichen
+    def populate_tree_view(self,tree_view):
         app = App.get_running_app()
-        for node in self.node_list:
+        for node in self.node_list.copy():
             content = app.read_yaml_file(node.timestamp + ".yaml")
-            if content.get("directory") == tree_view.root.text:
-                tree_view.add_node(node)
+            if "directory" in content:
+                if content.get("directory") == tree_view.root.text:
+                    tree_view.add_node(node)
+                    self.node_list.remove(node)
+        self.ids.tree_views.add_widget(tree_view)
+
+    def populate_nodes(self):
+        app = App.get_running_app()
+        for node in self.node_list.copy():
+            content = app.read_yaml_file(node.timestamp + ".yaml")
+            if not ("directory" in content):
+                self.ids.tree_views.add_widget(node)
+
+
 
     def write_text_to_codeinput(self, instance):
         self.focused_md_file = instance.timestamp
@@ -106,6 +108,7 @@ class MainScreen(MDScreen):
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     timestamp = StringProperty("")
+
 
 # class TreeViewOneLineListItem(OneLineListItem, TreeViewNode):
 #    pass
