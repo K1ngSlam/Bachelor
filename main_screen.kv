@@ -2,32 +2,20 @@
 
 MainScreen:
     name: "MainScreen"
+
     MDBoxLayout:
         orientation: "vertical"
-        MDBoxLayout:
-            size_hint: 0.5,.05
-            orientation: "horizontal"
-            MDRaisedButton:
-                id: create_md
-                text: "Create Markdown file"
-                on_press: root.create_markdown()
-            MDRaisedButton:
-                id: mainpage_settings
-                text: "Settings"
-                on_press:
-                    app.root.current = "MainSettings"
-                    root.manager.transition.direction = "left"
-
+        MDToolbar:
+            size_hint: 1,0.075
+            title: "SCRIBLER"
+            left_action_items: [["refresh", lambda x: root.refresh()]]
+            right_action_items: [["file-plus", lambda x: root.create_markdown(), "Adding a default MarkDown-file"],["wrench", lambda x:  app.switch_to_screen(1),"Settings"]]
         MDBoxLayout:
             orientation: "horizontal"
-
             MDBoxLayout:
                 id: tree_views
                 size_hint: .3,1
                 orientation: "vertical"
-
-
-
             MDBoxLayout:
                 CodeInput:
                     id: box_for_codeinput

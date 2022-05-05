@@ -51,6 +51,8 @@ class NoteApp(MDApp):
             with open(os.path.join(self.directory_path, str(file_name) + ".yaml"), "r") as file:
                 return yaml.load(file, Loader=yaml.Loader)
 
-
+    def switch_to_screen(self, screen_number, direction = "left"):
+        self.sm.transition.direction = direction
+        self.sm.current = self.sm.screens[screen_number].name
 
 NoteApp().run()

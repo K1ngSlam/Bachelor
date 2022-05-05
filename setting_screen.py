@@ -1,6 +1,5 @@
-from logging import Logger
+
 from kivy.app import App
-from kivy.uix.screenmanager import Screen
 from kivymd.uix.screen import MDScreen
 
 

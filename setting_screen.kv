@@ -3,21 +3,12 @@
 SettingScreen:
     name: "MainSettings"
     md_bg_color: 0, 0, 0 ,1
-    MDIconButton:
-        icon: "home"
-        size_hint: 0.1, 0.2
-        pos_hint: { "x": 0, "top": 1 }
-        on_press:
-            app.root.current = "MainScreen"
-            root.manager.transition.direction = "right"
 
     MDFloatLayout:
         md_bg_color: 0, 0, 0, 1
         line_color: 127, 0, 255, 1
         size_hint: 0.9, 0.9
         pos_hint: {"x": 0.05, "y": 0.05}
-
-
         MDLabel:
             text: "Change the Directory to search for the .Md-files"
             pos_hint: {"x": 0.3, "y": 0.12}
@@ -28,3 +19,8 @@ SettingScreen:
             text: app.directory_path
             size_hint: 0.5, 0.1
             on_text_validate: root.change_md_directory_path()
+    MDToolbar:
+        pos_hint: { "x": 0,"y": 0.925 }
+        size_hint: 1,0.075
+        title: "Settings"
+        left_action_items: [["arrow-left", lambda x: app.switch_to_screen(0,"right") ] ]
