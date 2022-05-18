@@ -60,7 +60,7 @@ class MainScreen(MDScreen):
         for file in os.scandir(path):
             if file.is_file() and file.name.endswith(".yaml"):
                 content = app.read_yaml_file(file.name, path)
-                color = 255,1,1,1
+                color = 255, 1, 1, 1
                 if "importance" in content:
                     color = self.pick_importance_colour(content)
                 if "type" in content:
@@ -71,12 +71,15 @@ class MainScreen(MDScreen):
                         else:
                             title = content.get("title")
                         if parent is None:
-                            tree_view.add_node(TreeViewIconButton(line_color = color,icon = "file",icon_color=color,text=title, path=file.path.rstrip(file.name), timestamp=timestamp,
-                                                              on_touch_down=self.on_pressed))
+                            tree_view.add_node(
+                                TreeViewIconButton(line_color=color, icon="file", icon_color=color, text=title,
+                                                   path=file.path.rstrip(file.name), timestamp=timestamp,
+                                                   on_touch_down=self.on_pressed))
                         else:
                             tree_view.add_node(
-                                TreeViewIconButton(line_color = color,icon_color=color,icon = "file",text=title, path=file.path.rstrip(file.name), timestamp=timestamp,
-                                               on_touch_down=self.on_pressed), parent)
+                                TreeViewIconButton(line_color=color, icon_color=color, icon="file", text=title,
+                                                   path=file.path.rstrip(file.name), timestamp=timestamp,
+                                                   on_touch_down=self.on_pressed), parent)
                     if content.get("type") == "project":
                         pass
             if file.is_dir():
@@ -96,17 +99,14 @@ class MainScreen(MDScreen):
 
     def write_text_to_codeinput(self, instance):
         self.focused_md_file = instance.timestamp
-        text = App.get_running_app().read_md_file(instance.timestamp,instance.path)
+        text = App.get_running_app().read_md_file(instance.timestamp, instance.path)
         self.ids.box_for_codeinput.text = text
-
-    def save_text(self, keyboard, keycode):# Keyboard_on_key_down textinput zum speichern
-        print(keycode)
 
     def refresh(self):
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
         tv = TreeView(hide_root=True)
-        self.populate_tree_view(tv, None, app.directory_path)
+        self.populate_tree_view(tv, None, app.config.get("workingdirectory", "current"))
         self.ids.tree_views.add_widget(tv)
 
 
@@ -114,6 +114,7 @@ class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
+
 
 class TreeViewIconButton(MDRectangleFlatIconButton, TreeViewNode):
     app = App.get_running_app()

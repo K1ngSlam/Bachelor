@@ -11,16 +11,16 @@ SettingScreen:
         pos_hint: {"x": 0.05, "y": 0.05}
         MDLabel:
             text: "Change the Directory to search for the .Md-files"
-            pos_hint: {"x": 0.3, "y": 0.12}
+            pos_hint: {"x": 0.27, "y": 0.12}
 
         MDTextField:
             id: set_md_directory
-            pos_hint: {"x": 0.3, "y": 0.5}
-            text: app.directory_path
+            pos_hint: {"x": 0.27, "y": 0.5}
             size_hint: 0.5, 0.1
             on_text_validate: root.change_md_directory_path()
+
     MDToolbar:
         pos_hint: { "x": 0,"y": 0.925 }
         size_hint: 1,0.075
         title: "Settings"
-        left_action_items: [["arrow-left", lambda x: app.switch_to_screen(0,"right") ] ]
+        left_action_items: [["arrow-left", lambda x: app.switch_to_screen(0,"right") ],["more", lambda x: root.callback(x)] ]

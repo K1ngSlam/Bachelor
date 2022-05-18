@@ -10,6 +10,8 @@ MainScreen:
             title: "SCRIBLER"
             left_action_items: [["refresh", lambda x: root.refresh()]]
             right_action_items: [["file-plus", lambda x: root.create_markdown(), "Adding a default MarkDown-file"],["wrench", lambda x:  app.switch_to_screen(1),"Settings"]]
+
+
         MDBoxLayout:
             orientation: "horizontal"
             MDBoxLayout:

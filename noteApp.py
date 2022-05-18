@@ -15,14 +15,18 @@ class NoteApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.sm = ScreenManager()
-        self.directory_path = StringProperty()
-        self.directory_path = "/home/ubuntu/PycharmProjects/Bachelor/working_directory"
+        self.directory_path = StringProperty("")
 
     def build_config(self, config):
         config.setdefaults(
             "workingdirectory",
             {
                 "current": "/home/ubuntu/PycharmProjects/Bachelor/working_directory"
+            }
+        )
+        config.setdefaults(
+            "recent",
+            {
             }
         )
 
