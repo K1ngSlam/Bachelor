@@ -27,6 +27,8 @@ class NoteApp(MDApp):
         config.setdefaults(
             "recent",
             {
+                "count": 1,
+                "maxvalue": 5
             }
         )
 

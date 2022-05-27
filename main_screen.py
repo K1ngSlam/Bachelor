@@ -71,10 +71,11 @@ class MainScreen(MDScreen):
                         else:
                             title = content.get("title")
                         if parent is None:
+                            button = TreeViewIconButton(line_color=color, icon="file",
+                                                        icon_color=color, text=title, path=file.path.rstrip(file.name),
+                                                        timestamp=timestamp, on_touch_down=self.on_pressed)
                             tree_view.add_node(
-                                TreeViewIconButton(line_color=color, icon="file", icon_color=color, text=title,
-                                                   path=file.path.rstrip(file.name), timestamp=timestamp,
-                                                   on_touch_down=self.on_pressed))
+                                button)
                         else:
                             tree_view.add_node(
                                 TreeViewIconButton(line_color=color, icon_color=color, icon="file", text=title,
