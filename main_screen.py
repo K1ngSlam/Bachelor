@@ -18,7 +18,6 @@ class MainScreen(MDScreen):
 
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.focused_md_file = StringProperty("")
         self.first_entered = False
 
     def on_pre_enter(self,
@@ -99,7 +98,7 @@ class MainScreen(MDScreen):
         self.refresh()
 
     def write_text_to_codeinput(self, instance):
-        self.focused_md_file = instance.timestamp
+        App.get_running_app().focused_md_file = instance
         text = App.get_running_app().read_md_file(instance.timestamp, instance.path)
         self.ids.box_for_codeinput.text = text
 
@@ -109,6 +108,9 @@ class MainScreen(MDScreen):
         tv = TreeView(hide_root=True)
         self.populate_tree_view(tv, None, app.config.get("workingdirectory", "current"))
         self.ids.tree_views.add_widget(tv)
+
+    def get_code_input_text(self):
+        return self.ids.box_for_codeinput.text
 
 
 class TreeViewButton(MDFlatButton, TreeViewNode):

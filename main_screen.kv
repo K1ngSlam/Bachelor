@@ -1,4 +1,5 @@
 #: import MainScreen main_screen.MainScreen
+#: import CustomeCodeInput custom_code_input.CustomCodeInput
 
 MainScreen:
     name: "MainScreen"
@@ -19,6 +20,6 @@ MainScreen:
                 size_hint: .3,1
                 orientation: "vertical"
             MDBoxLayout:
-                CodeInput:
+                CustomCodeInput:
                     id: box_for_codeinput
                     text: "This is a Node"

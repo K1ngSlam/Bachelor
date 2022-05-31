@@ -1,9 +1,6 @@
 import os
 
-import self
-from kivy.app import App
 from kivy.lang import Builder
-from kivy.logger import Logger
 from kivy.properties import StringProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.app import MDApp
@@ -16,6 +13,7 @@ class NoteApp(MDApp):
         super().__init__(**kwargs)
         self.sm = ScreenManager()
         self.directory_path = StringProperty("")
+        self.focused_md_file = None
 
     def build_config(self, config):
         config.setdefaults(
