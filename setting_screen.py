@@ -51,17 +51,35 @@ class SettingScreen(MDScreen):
     def change_md_directory_path(self):
         app = App.get_running_app()
         new_dir_path = self.ids.set_md_directory.text
+        max_value =app.config.getint("recent", "maxvalue")
         recent_count = app.config.getint("recent", "count")
-        for i in range(1, recent_count + 1):
-            if app.directory_path == app.config.get("recent", str(i)):
+        if new_dir_path == app.directory_path:
+            return
+        for i in range(1, recent_count + 1): #find new dir path in the recent dict
+            if new_dir_path == app.config.get("recent", str(i)):
                 app.directory_path = new_dir_path
                 app.config["workingdirectory"]["current"] = new_dir_path
                 app.config.write()
                 return
-        if recent_count + 1 <= app.config.getint("recent", "maxvalue"):
+        if recent_count + 1 <= max_value:
+            for i in range(1, recent_count + 1): #find the current path in recent to not have duplicates
+                if app.directory_path == app.config.get("recent", str(i)):
+                    app.directory_path = new_dir_path
+                    app.config["workingdirectory"]["current"] = new_dir_path
+                    app.config.write()
+                    self.update_menu()
+                    return
             app.config["recent"][str(recent_count + 1)] = app.directory_path
             app.directory_path = new_dir_path
             app.config["workingdirectory"]["current"] = new_dir_path
             app.config["recent"]["count"] = str(recent_count + 1)
+            app.config.write()
+            self.update_menu()
+        else:
+            for i in range(1, recent_count - 1):
+                app.config["recent"][str(i)] = app.config["recent"][str(i+1)]
+            app.config["recent"][str(max_value)] = new_dir_path
+            app.directory_path = new_dir_path
+            app.config["workingdirectory"]["current"] = new_dir_path
             app.config.write()
             self.update_menu()

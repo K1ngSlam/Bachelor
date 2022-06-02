@@ -1,7 +1,6 @@
 from kivy.app import App
 from kivy.uix.codeinput import CodeInput
 
-import main_screen
 
 
 class CustomCodeInput(CodeInput):
@@ -11,7 +10,6 @@ class CustomCodeInput(CodeInput):
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         super().keyboard_on_key_down(window, keycode, text, modifiers)
-        print(f"\KEY_DOWN -- window:{window}, keycode:{keycode}, text:{text}, modifiers:{modifiers}")
         if keycode[1] == "s" and "ctrl" in modifiers and self.blocker:
             self.blocker = False
 
