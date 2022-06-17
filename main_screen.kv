@@ -1,6 +1,10 @@
 #: import MainScreen main_screen.MainScreen
 #: import CustomeCodeInput custom_code_input.CustomCodeInput
-
+<TreeViewThreeLineAvatarListItem>:
+    IconLeftWidget:
+        icon: root.icon
+    ImageLeftWidget:
+        source: root.source
 MainScreen:
     name: "MainScreen"
 
@@ -15,10 +19,24 @@ MainScreen:
 
         MDBoxLayout:
             orientation: "horizontal"
+
             MDBoxLayout:
-                id: tree_views
-                size_hint: .3,1
                 orientation: "vertical"
+                size_hint: .3,1
+
+                MDBoxLayout:
+                    adaptive_height: True
+
+                    MDTextField:
+                        id: search_field
+                        color_mode: "accent"
+                        on_text_validate: root.refresh()
+
+                MDBoxLayout:
+                    id: tree_views
+                    size_hint: 1,1
+                    orientation: "vertical"
+
             MDBoxLayout:
                 CustomCodeInput:
                     id: box_for_codeinput

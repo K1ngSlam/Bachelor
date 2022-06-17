@@ -1,17 +1,14 @@
-import fnmatch
 import os
 from datetime import datetime
 from logging import Logger
 
 import yaml
 from kivy.app import App
-from kivy.properties import StringProperty, ListProperty
+from kivy.properties import StringProperty
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton
+from kivymd.uix.list import ThreeLineAvatarListItem, IconLeftWidget
 from kivymd.uix.screen import MDScreen
-from mdutils import MdUtils
-
-from setting_screen import SettingScreen
 
 
 class MainScreen(MDScreen):
@@ -54,37 +51,50 @@ class MainScreen(MDScreen):
         if importance >= 5:
             return 200, 0, 0, 1
 
-    def populate_tree_view(self, tree_view, parent, path):
+    def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
         for file in os.scandir(path):
-            if file.is_file() and file.name.endswith(".yaml"):
-                content = app.read_yaml_file(file.name, path)
-                color = 255, 1, 1, 1
-                if "importance" in content:
-                    color = self.pick_importance_colour(content)
-                if "type" in content:
-                    if content.get("type") == "node":
-                        timestamp = file.name.rstrip(".yaml")
-                        if not ("title" in content):
-                            title = file.name.rstrip(".yaml")
-                        else:
-                            title = content.get("title")
-                        if parent is None:
-                            button = TreeViewIconButton(line_color=color, icon="file",
-                                                        icon_color=color, text=title, path=file.path.rstrip(file.name),
-                                                        timestamp=timestamp, on_touch_down=self.on_pressed)
-                            tree_view.add_node(
-                                button)
-                        else:
-                            tree_view.add_node(
-                                TreeViewIconButton(line_color=color, icon_color=color, icon="file", text=title,
-                                                   path=file.path.rstrip(file.name), timestamp=timestamp,
-                                                   on_touch_down=self.on_pressed), parent)
-                    if content.get("type") == "project":
-                        pass
             if file.is_dir():
                 tree_node = tree_view.add_node(TreeViewButton(text=file.name))
-                self.populate_tree_view(tree_view, tree_node, file.path)
+                self.populate_tree_view(tree_view, tree_node, file.path, search)
+            if not (file.is_file() and file.name.endswith(".yaml")):
+                continue
+            content = app.read_yaml_file(file.name, path)
+            color = 255, 1, 1, 1
+            tags = ""
+            if "importance" in content:
+                color = self.pick_importance_colour(content)
+            if "type" in content:
+                if content.get("type") == "node":
+                    timestamp = file.name.rstrip(".yaml")
+                    if not ("title" in content):
+                        title = file.name.rstrip(".yaml")
+                    else:
+                        title = content.get("title")
+                    if ("tags" in content):
+                        for tag in content.get("tags"):
+                            tags += "#" + tag + " "
+                    if parent is None:
+                        if search is not None and search in title:
+                            button = TreeViewThreeLineAvatarListItem(text=title,
+                                                                     secondary_text=tags,
+                                                                     # TODO tags noch farbig machen?
+                                                                     icon="file",
+                                                                     path=file.path.rstrip(file.name),
+                                                                     timestamp=timestamp, on_touch_down=self.on_pressed)
+                            tree_view.add_node(
+                                button)
+                    else:
+                        if search is not None and search in title:
+                            button = TreeViewThreeLineAvatarListItem(icon="file", text=title,
+                                                                     secondary_text=tags,
+                                                                     path=file.path.rstrip(file.name),
+                                                                     timestamp=timestamp,
+                                                                     on_touch_down=self.on_pressed)
+                            tree_view.add_node(button,
+                                               parent)
+                if content.get("type") == "project":
+                    pass
 
     def on_pressed(self, instance, touch):
         if touch.button == "right":
@@ -103,10 +113,11 @@ class MainScreen(MDScreen):
         self.ids.box_for_codeinput.text = text
 
     def refresh(self):
+        search = self.ids.search_field.text
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
         tv = TreeView(hide_root=True)
-        self.populate_tree_view(tv, None, app.config.get("workingdirectory", "current"))
+        self.populate_tree_view(tv, None, app.config.get("workingdirectory", "current"), search)
         self.ids.tree_views.add_widget(tv)
 
     def get_code_input_text(self):
@@ -123,3 +134,11 @@ class TreeViewIconButton(MDRectangleFlatIconButton, TreeViewNode):
     app = App.get_running_app()
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
+
+
+class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
+    app = App.get_running_app()
+    timestamp = StringProperty("")
+    path = StringProperty(app.directory_path)
+    source = StringProperty()
+    icon = StringProperty()
