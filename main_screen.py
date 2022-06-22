@@ -5,6 +5,7 @@ from logging import Logger
 import yaml
 from kivy.app import App
 from kivy.properties import StringProperty
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton
 from kivymd.uix.list import ThreeLineAvatarListItem, IconLeftWidget
@@ -24,7 +25,7 @@ class MainScreen(MDScreen):
     def create_markdown(self):
         self.ids.tree_views.clear_widgets()
         timestamp_now = str(datetime.now())
-        timestamp_now.replace(" ", "_")
+        timestamp_now = timestamp_now.replace(" ", "_")
         self.create_yaml(timestamp_now)
         open(os.path.join(App.get_running_app().directory_path, timestamp_now + ".md"), 'w')
         self.refresh()
@@ -54,14 +55,17 @@ class MainScreen(MDScreen):
     def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
         for file in os.scandir(path):
-            if file.is_dir():
+            if file.is_dir() and parent is None:
                 tree_node = tree_view.add_node(TreeViewButton(text=file.name))
+                self.populate_tree_view(tree_view, tree_node, file.path, search)
+            if file.is_dir() and parent is not None:
+                tree_node = tree_view.add_node(TreeViewButton(text=file.name), parent)
                 self.populate_tree_view(tree_view, tree_node, file.path, search)
             if not (file.is_file() and file.name.endswith(".yaml")):
                 continue
             content = app.read_yaml_file(file.name, path)
             color = 255, 1, 1, 1
-            tags = ""
+            tags = " "
             if "importance" in content:
                 color = self.pick_importance_colour(content)
             if "type" in content:
@@ -73,24 +77,27 @@ class MainScreen(MDScreen):
                         title = content.get("title")
                     if ("tags" in content):
                         for tag in content.get("tags"):
-                            tags += "#" + tag + " "
+                            tags += "[color=#ff0000]#[/color]" + tag + " "
                     if parent is None:
-                        if search is not None and search in title:
+                        if search is not None and (search in title or search in tags):
                             button = TreeViewThreeLineAvatarListItem(text=title,
                                                                      secondary_text=tags,
-                                                                     # TODO tags noch farbig machen?
+                                                                     tertiary_text=" ",
                                                                      icon="file",
                                                                      path=file.path.rstrip(file.name),
                                                                      timestamp=timestamp, on_touch_down=self.on_pressed)
+                            button.set_button_icon_color(color)
                             tree_view.add_node(
                                 button)
                     else:
-                        if search is not None and search in title:
+                        if search is not None and (search in title or search in tags):
                             button = TreeViewThreeLineAvatarListItem(icon="file", text=title,
-                                                                     secondary_text=tags,
+                                                                     secondary_text=tags + "[color=#ff0000]#[/color]" + parent.text,
+                                                                     tertiary_text=" ",
                                                                      path=file.path.rstrip(file.name),
                                                                      timestamp=timestamp,
                                                                      on_touch_down=self.on_pressed)
+                            button.set_button_icon_color(color)
                             tree_view.add_node(button,
                                                parent)
                 if content.get("type") == "project":
@@ -117,8 +124,12 @@ class MainScreen(MDScreen):
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
         tv = TreeView(hide_root=True)
+        tv.size_hint = (1, None)
+        tv.bind(minimum_height=tv.setter("height"))
+        scroll_view = ScrollView(pos = (0,0))
         self.populate_tree_view(tv, None, app.config.get("workingdirectory", "current"), search)
-        self.ids.tree_views.add_widget(tv)
+        self.ids.tree_views.add_widget(scroll_view)
+        scroll_view.add_widget(tv)
 
     def get_code_input_text(self):
         return self.ids.box_for_codeinput.text
@@ -142,3 +153,6 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     path = StringProperty(app.directory_path)
     source = StringProperty()
     icon = StringProperty()
+
+    def set_button_icon_color(self, color):
+        self.ids._left_container.children[1].children[0].color = color

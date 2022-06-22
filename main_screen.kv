@@ -21,20 +21,23 @@ MainScreen:
             orientation: "horizontal"
 
             MDBoxLayout:
+                id: side_panel
                 orientation: "vertical"
                 size_hint: .3,1
 
                 MDBoxLayout:
+                    id: search_layout
                     adaptive_height: True
-
+                    orientation: "horizontal"
+                    MDIconButton:
+                        icon: "note-search"
                     MDTextField:
                         id: search_field
                         color_mode: "accent"
                         on_text_validate: root.refresh()
-
+                        size_hint: 1,1
                 MDBoxLayout:
                     id: tree_views
-                    size_hint: 1,1
                     orientation: "vertical"
 
             MDBoxLayout:

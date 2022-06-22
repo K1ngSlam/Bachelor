@@ -13,6 +13,7 @@ class CustomCodeInput(CodeInput):
         if keycode[1] == "s" and "ctrl" in modifiers and self.blocker:
             self.blocker = False
 
+
     def keyboard_on_key_up(self, window, keycode):
         super().keyboard_on_key_up(window, keycode)
         if not self.blocker and keycode[1] == "s":
