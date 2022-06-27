@@ -9,6 +9,7 @@ MainScreen:
     name: "MainScreen"
 
     MDBoxLayout:
+        id: tool_bar
         orientation: "vertical"
         MDToolbar:
             size_hint: 1,0.075
@@ -40,7 +41,33 @@ MainScreen:
                     id: tree_views
                     orientation: "vertical"
 
+
+
             MDBoxLayout:
+                orientation: "vertical"
+                MDFloatLayout:
+                    size_hint: 1, 0.1
+                    MDLabel:
+                        id: md_header_label
+                        pos_hint: {"x": 0, "y": .00}
+                        font_size: 22
+                        size_hint: (1,1)
+
+                    TextInput:
+                        id: md_header_input
+                        font_size: 22
+                        size_hint: (1,1)
+                        pos_hint: {"x": 0, "y": .00}
+                        multiline: False
+                        on_text_validate: root.header_change()
+
+                MDBoxLayout:
+                    size_hint: 1, None
+                    size: (self.height,self.minimum_height)
+                    orientation: "horizontal"
+                    id: chip_tags
+
+
                 CustomCodeInput:
                     id: box_for_codeinput
                     text: "This is a Node"

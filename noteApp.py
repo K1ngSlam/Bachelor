@@ -47,9 +47,9 @@ class NoteApp(MDApp):
 
         return self.sm
 
-    def read_md_file(self,md_file_name, path):
+    def read_md_file(self, md_file_name, path):
         if str(md_file_name).endswith(".md"):
-            with open (os.path.join(path, md_file_name)) as file:
+            with open(os.path.join(path, md_file_name)) as file:
                 content = file.read()
             return content
         else:
@@ -57,7 +57,7 @@ class NoteApp(MDApp):
                 content = file.read()
             return content
 
-    def save_to_md_file(self, md_file_name, path ,text):
+    def save_to_md_file(self, md_file_name, path, text):
         if str(md_file_name).endswith(".md"):
             with open(os.path.join(path, str(md_file_name)), "w") as file:
                 file.write(text)
@@ -72,6 +72,14 @@ class NoteApp(MDApp):
         else:
             with open(os.path.join(path, str(file_name) + ".yaml"), "r") as file:
                 return yaml.load(file, Loader=yaml.Loader)
+
+    def save_to_yaml_file(self, file_name, path, data):
+        if str(file_name).endswith(".yaml"):
+            with open(os.path.join(path, str(file_name)), "w") as file:
+                yaml.dump(data, file)
+        else:
+            with open(os.path.join(path, str(file_name) + ".yaml"), "w") as file:
+                yaml.dump(data, file)
 
     def switch_to_screen(self, screen_number, direction="left"):
         self.sm.transition.direction = direction
