@@ -13,7 +13,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDIconButton
 from kivymd.uix.chip import MDChip
-from kivymd.uix.label import MDIcon
+from kivymd.uix.label import MDIcon, MDLabel
 from kivymd.uix.list import ThreeLineAvatarListItem, IconLeftWidget
 from kivymd.uix.screen import MDScreen
 
@@ -43,7 +43,6 @@ class MainScreen(MDScreen):
             "type": "node",
             "title": markdown_timestamp,
             "importance": 5
-
         }
         app.save_to_yaml_file(yamlName, app.directory_path, data)
 
@@ -111,6 +110,7 @@ class MainScreen(MDScreen):
             self.delete_node(instance)
         else:
             self.write_text_to_codeinput(instance)
+            self.display_title(instance)
             self.display_tags(instance)
 
     def delete_node(self, instance):
@@ -134,8 +134,13 @@ class MainScreen(MDScreen):
         if "tags" in content:
             for tag in content.get("tags"):
                 chip = MDChip(text=tag, icon="close-circle-outline", pos_hint={"y": 0.25})
-                chip.bind(on_release= self.remove_tag)
+                chip.bind(on_release=self.remove_tag)
                 tag_boxlayout.add_widget(chip)
+
+    def display_title(self, instance):
+        app = App.get_running_app()
+        content = app.read_yaml_file(instance.timestamp, instance.path)
+        self.ids.md_header_label.text = content.get("title")
 
     def refresh(self):
         search = self.ids.search_field.text
@@ -176,7 +181,7 @@ class MainScreen(MDScreen):
 
         popup.dismiss()
 
-    def remove_tag(self,instance):
+    def remove_tag(self, instance):
         app = App.get_running_app()
         tag_boxlayout = self.ids.chip_tags
         tag_boxlayout.remove_widget(instance)
@@ -200,7 +205,23 @@ class MainScreen(MDScreen):
         return tags
 
     def header_change(self):
-        new_header = self.ids.md_header_change.text
+        app = App.get_running_app()
+        md_header_input = self.ids.md_header_input
+        md_header_label = self.ids.md_header_label
+        new_header = md_header_input.text
+        md_header_input.disabled = True
+        md_header_input.opacity = 0
+        md_header_label.text = new_header
+        content = app.read_yaml_file(app.focused_md_file.timestamp, app.focused_md_file.path)
+        content["title"] = new_header
+        app.save_to_yaml_file(app.focused_md_file.timestamp, app.focused_md_file.path, content)
+
+        self.refresh()
+
+    def activate_header_change(self):
+        md_header_input = self.ids.md_header_input
+        md_header_input.disabled = False
+        md_header_input.opacity = 1
 
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
@@ -224,3 +245,7 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
 
     def set_button_icon_color(self, color):
         self.ids._left_container.children[1].children[0].color = color
+
+
+class MDButtonLabel(ButtonBehavior, MDLabel):
+    pass

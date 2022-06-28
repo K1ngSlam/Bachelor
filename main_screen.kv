@@ -47,15 +47,19 @@ MainScreen:
                 orientation: "vertical"
                 MDFloatLayout:
                     size_hint: 1, 0.1
-                    MDLabel:
+                    MDButtonLabel:
                         id: md_header_label
+                        markup: True
                         pos_hint: {"x": 0, "y": .00}
                         font_size: 22
                         size_hint: (1,1)
+                        on_release: root.activate_header_change()
 
                     TextInput:
                         id: md_header_input
                         font_size: 22
+                        disabled: True
+                        opacity: 0
                         size_hint: (1,1)
                         pos_hint: {"x": 0, "y": .00}
                         multiline: False

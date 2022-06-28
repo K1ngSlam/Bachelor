@@ -1,12 +1,13 @@
 from kivy.app import App
+from kivy.extras.highlight import KivyLexer
 from kivy.uix.codeinput import CodeInput
-
 
 
 class CustomCodeInput(CodeInput):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.blocker = True
+        self.lexer = KivyLexer()
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         super().keyboard_on_key_down(window, keycode, text, modifiers)
