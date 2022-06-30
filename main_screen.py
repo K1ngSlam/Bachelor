@@ -16,6 +16,8 @@ from kivymd.uix.chip import MDChip
 from kivymd.uix.label import MDIcon, MDLabel
 from kivymd.uix.list import ThreeLineAvatarListItem, IconLeftWidget
 from kivymd.uix.screen import MDScreen
+from pygments.lexers import YamlLexer
+from pygments.lexers import MarkdownLexer
 
 
 class MainScreen(MDScreen):
@@ -90,7 +92,9 @@ class MainScreen(MDScreen):
                                                                      icon="file",
                                                                      path=file.path.rstrip(file.name),
                                                                      timestamp=timestamp, on_touch_down=self.on_pressed)
+                            self.set_default_values_treeviewbutton(button)
                             button.set_button_icon_color(color)
+
                             tree_view.add_node(
                                 button)
                     else:
@@ -101,13 +105,16 @@ class MainScreen(MDScreen):
                                                                      path=file.path.rstrip(file.name),
                                                                      timestamp=timestamp,
                                                                      on_touch_down=self.on_pressed)
+                            self.set_default_values_treeviewbutton(button)
                             button.set_button_icon_color(color)
+
                             tree_view.add_node(button,
                                                parent)
 
     def on_pressed(self, instance, touch):
         if touch.button == "right":
-            self.delete_node(instance)
+            self.edit_yaml_file(instance)
+            self.display_title(instance)
         else:
             self.write_text_to_codeinput(instance)
             self.display_title(instance)
@@ -116,12 +123,25 @@ class MainScreen(MDScreen):
     def delete_node(self, instance):
         os.remove(os.path.join(instance.path, instance.timestamp + ".md"))
         os.remove(os.path.join(instance.path, instance.timestamp + ".yaml"))
+
         self.refresh()
 
     def write_text_to_codeinput(self, instance):
         App.get_running_app().focused_md_file = instance
+        codeinput = self.ids.box_for_codeinput
         text = App.get_running_app().read_md_file(instance.timestamp, instance.path)
-        self.ids.box_for_codeinput.text = text
+        codeinput.lexer = MarkdownLexer()
+        codeinput.is_current_lexer_markdown = True
+        codeinput.text = text
+
+    def edit_yaml_file(self,instance):
+        app = App.get_running_app()
+        app.focused_md_file = instance
+        codeinput = self.ids.box_for_codeinput
+        content= app.read_yaml_file(instance.timestamp, instance.path)
+        codeinput.lexer = YamlLexer()
+        codeinput.is_current_lexer_markdown = False
+        codeinput.text = yaml.dump(content)
 
     def display_tags(self, instance):
         tag_boxlayout = self.ids.chip_tags
@@ -223,6 +243,21 @@ class MainScreen(MDScreen):
         md_header_input.disabled = False
         md_header_input.opacity = 1
 
+    def set_default_values_treeviewbutton(self, button):
+        left_container = button.ids._left_container
+
+        left_container.orientation = "vertical"
+        left_container.add_widget(MDIconButton(icon="file"))
+        left_container.pos_hint = {"y": -0.05}
+        left_container.children[0].pos_hint = {"x": -0.5}
+        left_container.children[2].pos_hint = {"x": -0.5}
+
+        text_container = button.ids._text_container
+
+        for label in text_container.children:
+            label.size_hint_x = 1.3
+            label.pos_hint = {"x": -0.1}
+
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
@@ -244,7 +279,8 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     icon = StringProperty()
 
     def set_button_icon_color(self, color):
-        self.ids._left_container.children[1].children[0].color = color
+        self.ids._left_container.children[0].children[0].color = color
+        self.ids._left_container.children[2].children[0].color = color
 
 
 class MDButtonLabel(ButtonBehavior, MDLabel):
