@@ -1,9 +1,8 @@
 import os
 
-import git
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 import yaml
 
