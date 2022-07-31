@@ -4,7 +4,6 @@ from datetime import datetime
 import yaml
 from kivy.app import App
 from kivy.effects.scroll import ScrollEffect
-from kivy.metrics import dp
 from kivy.properties import StringProperty, ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.popup import Popup
@@ -25,6 +24,7 @@ class MainScreen(MDScreen):
         super().__init__(**kw)
         self.first_entered = False
         self.popup = None
+
     def on_pre_enter(self, *args):
         self.refresh()
 
@@ -127,8 +127,14 @@ class MainScreen(MDScreen):
             self.display_tags()
 
     def delete_node(self, instance):
+        codeinput = self.ids.box_for_codeinput
+        codeinput.text = ""
+        tag_boxlayout = self.ids.chip_tags
+        tag_boxlayout.clear_widgets()
+        self.ids.md_header_label.text = ""
         os.remove(os.path.join(instance.path, instance.timestamp + ".md"))
         os.remove(os.path.join(instance.path, instance.timestamp + ".yaml"))
+        App.get_running_app().focused_md_file = None
 
         self.refresh()
 
@@ -180,7 +186,7 @@ class MainScreen(MDScreen):
         search = self.ids.search_field.text
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
-        tv = TreeView(hide_root=True, indent_level = 8)
+        tv = TreeView(hide_root=True, indent_level=8)
         tv.size_hint = (1, None)
         tv.bind(minimum_height=tv.setter("height"))
         scroll_view = ScrollView(pos=(0, 0), effect_cls=ScrollEffect)
@@ -256,9 +262,13 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         md_header_input = self.ids.md_header_input
         md_header_label = self.ids.md_header_label
-        new_header = md_header_input.text
+
         md_header_input.disabled = True
         md_header_input.opacity = 0
+        if app.focused_md_file is None:
+            app.invalid_file_error()
+            return
+        new_header = md_header_input.text
         md_header_label.text = new_header
         content = app.read_yaml_file(
             app.focused_md_file.timestamp, app.focused_md_file.path
@@ -268,14 +278,16 @@ class MainScreen(MDScreen):
             app.focused_md_file.timestamp, app.focused_md_file.path, content
         )
 
-
         self.refresh()
 
     def activate_header_change(self):
+        app = App.get_running_app()
+        if app.focused_md_file is None:
+            app.invalid_file_error()
+            return
         md_header_input = self.ids.md_header_input
         md_header_input.disabled = False
         md_header_input.opacity = 1
-
 
     def set_default_values_treeviewbutton(self, button):
         left_container = button.ids._left_container
@@ -293,18 +305,21 @@ class MainScreen(MDScreen):
 
         for label in text_container.children:
             label.size_hint_x = 1.3
+
     def calc_dir_importance(self, dir_node):
         result = 0
         for number in dir_node.importance:
-            result =+ number
-        color = self.pick_importance_colour(result/len(dir_node.importance))
+            result = +number
+        color = self.pick_importance_colour(result / len(dir_node.importance))
         dir_node.line_color = color
+
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
     importance = ListProperty()
+
 
 class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     app = App.get_running_app()
