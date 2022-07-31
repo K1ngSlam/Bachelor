@@ -28,3 +28,6 @@ class CustomCodeInput(CodeInput):
             else:
                 parsed_text = yaml.load(text, Loader=yaml.FullLoader)
                 app.save_to_yaml_file(app.focused_md_file.timestamp, app.focused_md_file.path, parsed_text)
+            app.sm.get_screen("MainScreen").display_title()
+            app.sm.get_screen("MainScreen").display_tags()
+            app.sm.get_screen("MainScreen").refresh()

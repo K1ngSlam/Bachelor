@@ -1,5 +1,7 @@
 #: import MainScreen main_screen.MainScreen
 #: import CustomeCodeInput custom_code_input.CustomCodeInput
+#: import C kivy.utils.get_color_from_hex
+
 <TreeViewThreeLineAvatarListItem>:
     IconLeftWidget:
         icon: root.icon
@@ -24,7 +26,7 @@ MainScreen:
             MDBoxLayout:
                 id: side_panel
                 orientation: "vertical"
-                size_hint: .3,1
+                size_hint: .36,1
 
                 MDBoxLayout:
                     id: search_layout
@@ -58,6 +60,7 @@ MainScreen:
                     TextInput:
                         id: md_header_input
                         text: root.ids.md_header_label.text
+                        background_color: C("#BFBFBF")
                         font_size: 22
                         disabled: True
                         opacity: 0

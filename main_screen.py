@@ -3,7 +3,9 @@ from datetime import datetime
 
 import yaml
 from kivy.app import App
-from kivy.properties import StringProperty
+from kivy.effects.scroll import ScrollEffect
+from kivy.metrics import dp
+from kivy.properties import StringProperty, ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
@@ -14,8 +16,8 @@ from kivymd.uix.chip import MDChip
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import ThreeLineAvatarListItem
 from kivymd.uix.screen import MDScreen
-from pygments.lexers import YamlLexer
 from pygments.lexers import MarkdownLexer
+from pygments.lexers import YamlLexer
 
 
 class MainScreen(MDScreen):
@@ -23,7 +25,6 @@ class MainScreen(MDScreen):
         super().__init__(**kw)
         self.first_entered = False
         self.popup = None
-
     def on_pre_enter(self, *args):
         self.refresh()
 
@@ -44,77 +45,86 @@ class MainScreen(MDScreen):
         data = {"type": "node", "title": markdown_timestamp, "importance": 5}
         app.save_to_yaml_file(yamlName, app.directory_path, data)
 
-    def pick_importance_colour(self, content):
-        importance = content.get("importance")
+    def pick_importance_colour(self, importance):
         if importance <= 0:
-            return 0, 200, 83, 1
+            return 1, 1, 1, 1
         if importance < 3:
-            return 0, 250, 120, 1
+            return "#57FF54"
         if 5 > importance >= 3:
-            return 100, 0, 0, 1
+            return "#EBB221"
         if importance >= 5:
-            return 200, 0, 0, 1
+            return "#FF2E4D"
 
     def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
         for file in os.scandir(path):
             if file.is_dir():
-                tree_node = tree_view.add_node(TreeViewButton(text=file.name), parent)
+                tree_node = tree_view.add_node(
+                    TreeViewButton(text=file.name, line_color=(1, 1, 1, 1)), parent
+                )
+                tree_view.toggle_node(tree_node)
                 self.populate_tree_view(tree_view, tree_node, file.path, search)
+                if search is not None and len(tree_node.nodes) == 0:
+                    tree_view.remove_node(tree_node)
             if not (file.is_file() and file.name.endswith(".yaml")):
                 continue
             content = app.read_yaml_file(file.name, path)
-            color = 255, 1, 1, 1
+            title = self.get_node_title(content, file)
+            timestamp = file.name.removesuffix(".yaml")
             tags = " "
-            if "importance" in content:
-                color = self.pick_importance_colour(content)
-            if "type" in content and content.get("type") == "node":
-                timestamp = file.name.rstrip(".yaml")
-                title = self.get_node_title(content, file)
+            importance = content.get("importance", 0)
+            color = self.pick_importance_colour(importance)
+            if "type" in content and content["type"] == "node":
                 if "tags" in content:
                     if parent is not None and parent.text not in content.get("tags"):
                         content["tags"].append(parent.text)
                         app.save_to_yaml_file(file.name, path, content)
                     tags = self.get_formatted_node_tags(content)
-                if parent is None:
-                    if search is not None and (search in title or search in tags):
-                        button = TreeViewThreeLineAvatarListItem(
-                            text=title,
-                            secondary_text=tags,
-                            tertiary_text=" ",
-                            icon="file",
-                            path=file.path.rstrip(file.name),
-                            timestamp=timestamp,
-                            on_touch_down=self.on_pressed,
-                        )
-                        self.set_default_values_treeviewbutton(button)
-                        button.set_button_icon_color(color)
 
-                        tree_view.add_node(button)
-                else:
-                    if search is not None and (search in title or search in tags):
-                        button = TreeViewThreeLineAvatarListItem(
-                            icon="file",
-                            text=title,
-                            secondary_text=tags,
-                            tertiary_text=" ",
-                            path=file.path.rstrip(file.name),
-                            timestamp=timestamp,
-                            on_touch_down=self.on_pressed,
-                        )
-                        self.set_default_values_treeviewbutton(button)
-                        button.set_button_icon_color(color)
+                is_in_search = search is not None and (
+                    search in title or search in tags
+                )
+                if parent is None and is_in_search:
+                    button = TreeViewThreeLineAvatarListItem(
+                        text=title,
+                        secondary_text=tags,
+                        tertiary_text=" ",
+                        icon="file",
+                        path=file.path.removesuffix(file.name),
+                        timestamp=timestamp,
+                        on_touch_down=self.on_pressed,
+                    )
+                    self.set_default_values_treeviewbutton(button)
+                    button.set_button_icon_color(color)
 
-                        tree_view.add_node(button, parent)
+                    tree_view.add_node(button)
+
+                if parent and is_in_search:
+                    button = TreeViewThreeLineAvatarListItem(
+                        icon="file",
+                        text=title,
+                        secondary_text=tags,
+                        tertiary_text=" ",
+                        path=file.path.removesuffix(file.name),
+                        timestamp=timestamp,
+                        on_touch_down=self.on_pressed,
+                    )
+                    parent.importance.append(importance)
+                    self.calc_dir_importance(parent)
+                    self.set_default_values_treeviewbutton(button)
+                    button.set_button_icon_color(color)
+
+                    tree_view.add_node(button, parent)
 
     def on_pressed(self, instance, touch):
+        App.get_running_app().focused_md_file = instance
         if touch.button == "right":
-            self.edit_yaml_file(instance)
-            self.display_title(instance)
+            self.edit_yaml_file()
+            self.display_title()
         else:
-            self.write_text_to_codeinput(instance)
-            self.display_title(instance)
-            self.display_tags(instance)
+            self.write_text_to_codeinput()
+            self.display_title()
+            self.display_tags()
 
     def delete_node(self, instance):
         os.remove(os.path.join(instance.path, instance.timestamp + ".md"))
@@ -122,28 +132,31 @@ class MainScreen(MDScreen):
 
         self.refresh()
 
-    def write_text_to_codeinput(self, instance):
-        App.get_running_app().focused_md_file = instance
+    def write_text_to_codeinput(self):
+        app = App.get_running_app()
         codeinput = self.ids.box_for_codeinput
+        instance = app.focused_md_file
         text = App.get_running_app().read_md_file(instance.timestamp, instance.path)
         codeinput.lexer = MarkdownLexer()
         codeinput.is_current_lexer_markdown = True
         codeinput.text = text
 
-    def edit_yaml_file(self, instance):
+    def edit_yaml_file(self):
         app = App.get_running_app()
-        app.focused_md_file = instance
+        instance = app.focused_md_file
         codeinput = self.ids.box_for_codeinput
         content = app.read_yaml_file(instance.timestamp, instance.path)
         codeinput.lexer = YamlLexer()
         codeinput.is_current_lexer_markdown = False
         codeinput.text = yaml.dump(content)
 
-    def display_tags(self, instance):
+    def display_tags(self):
+        app = App.get_running_app()
+        instance = app.focused_md_file
         tag_boxlayout = self.ids.chip_tags
         tag_boxlayout.clear_widgets()
         icon_button = MDIconButton(icon="plus-circle-outline")
-        icon_button.bind(on_press=lambda x: self.open_add_tag_popup(instance))
+        icon_button.bind(on_press=lambda x: self.open_add_tag_popup())
         tag_boxlayout.add_widget(icon_button)
         content = App.get_running_app().read_yaml_file(
             instance.timestamp, instance.path
@@ -157,8 +170,9 @@ class MainScreen(MDScreen):
                 chip.bind(on_release=self.remove_tag)
                 tag_boxlayout.add_widget(chip)
 
-    def display_title(self, instance):
+    def display_title(self):
         app = App.get_running_app()
+        instance = app.focused_md_file
         content = app.read_yaml_file(instance.timestamp, instance.path)
         self.ids.md_header_label.text = content.get("title")
 
@@ -166,10 +180,10 @@ class MainScreen(MDScreen):
         search = self.ids.search_field.text
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
-        tv = TreeView(hide_root=True)
+        tv = TreeView(hide_root=True, indent_level = 8)
         tv.size_hint = (1, None)
         tv.bind(minimum_height=tv.setter("height"))
-        scroll_view = ScrollView(pos=(0, 0))
+        scroll_view = ScrollView(pos=(0, 0), effect_cls=ScrollEffect)
         self.populate_tree_view(
             tv, None, app.config.get("workingdirectory", "current"), search
         )
@@ -180,20 +194,19 @@ class MainScreen(MDScreen):
     def get_code_input_text(self):
         return self.ids.box_for_codeinput.text
 
-    def open_add_tag_popup(self, instance):
+    def open_add_tag_popup(self):
         tag_input = TextInput(multiline=False, size_hint=(1, None))
         tag_input.bind(minimum_height=tag_input.setter("height"))
         self.popup = Popup(
             title="Add Tag", content=tag_input, auto_dismiss=True, size_hint=(0.3, None)
         )
-        tag_input.bind(
-            on_text_validate=lambda x: self.add_tag(tag_input.text, instance)
-        )
+        tag_input.bind(on_text_validate=lambda x: self.add_tag(tag_input.text))
 
         self.popup.open()
 
-    def add_tag(self, tag_name, instance):
+    def add_tag(self, tag_name):
         app = App.get_running_app()
+        instance = app.focused_md_file
         tag_boxlayout = self.ids.chip_tags
         chip = MDChip(text=tag_name, icon="close-circle-outline", pos_hint={"y": 0.25})
         chip.bind(on_release=self.remove_tag)
@@ -204,7 +217,10 @@ class MainScreen(MDScreen):
             content["tags"] = tag_list
         content["tags"].append(tag_name)
         app.save_to_yaml_file(instance.timestamp, instance.path, content)
+        if not self.ids.box_for_codeinput.is_current_lexer_markdown:
+            self.edit_yaml_file()
 
+        self.popup.dismiss()
         self.popup.dismiss()
 
     def remove_tag(self, instance):
@@ -218,10 +234,12 @@ class MainScreen(MDScreen):
         app.save_to_yaml_file(
             app.focused_md_file.timestamp, app.focused_md_file.path, content
         )
+        if not self.ids.box_for_codeinput.is_current_lexer_markdown:
+            self.edit_yaml_file()
 
     def get_node_title(self, content, file):
         if not ("title" in content):
-            title = file.name.rstrip(".yaml")
+            title = file.name.removesuffix(".yaml")
             return title
         else:
             title = content.get("title")
@@ -250,12 +268,14 @@ class MainScreen(MDScreen):
             app.focused_md_file.timestamp, app.focused_md_file.path, content
         )
 
+
         self.refresh()
 
     def activate_header_change(self):
         md_header_input = self.ids.md_header_input
         md_header_input.disabled = False
         md_header_input.opacity = 1
+
 
     def set_default_values_treeviewbutton(self, button):
         left_container = button.ids._left_container
@@ -265,27 +285,26 @@ class MainScreen(MDScreen):
             MDIconButton(icon="delete", on_release=lambda x: self.delete_node(button))
         )
         left_container.pos_hint = {"y": -0.05}
-        left_container.children[0].pos_hint = {"x": -0.5}
-        left_container.children[2].pos_hint = {"x": -0.5}
+        left_container.children[0].pos_hint = {"right": 0.6}
+        left_container.children[2].pos_hint = {"right": 0.6}
 
         text_container = button.ids._text_container
+        text_container.pos_hint = {"right": 0.92}
 
         for label in text_container.children:
             label.size_hint_x = 1.3
-            label.pos_hint = {"x": -0.1}
-
+    def calc_dir_importance(self, dir_node):
+        result = 0
+        for number in dir_node.importance:
+            result =+ number
+        color = self.pick_importance_colour(result/len(dir_node.importance))
+        dir_node.line_color = color
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
-
-
-class TreeViewIconButton(MDRectangleFlatIconButton, TreeViewNode):
-    app = App.get_running_app()
-    timestamp = StringProperty("")
-    path = StringProperty(app.directory_path)
-
+    importance = ListProperty()
 
 class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     app = App.get_running_app()
