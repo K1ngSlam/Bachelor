@@ -2,6 +2,8 @@ import os
 from datetime import datetime
 
 import yaml
+import webbrowser
+import markdown
 from kivy.app import App
 from kivy.effects.scroll import ScrollEffect
 from kivy.properties import StringProperty, ListProperty
@@ -12,7 +14,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDIconButton
 from kivymd.uix.chip import MDChip
-from kivymd.uix.label import MDLabel
+from kivymd.uix.label import MDLabel, MDIcon
 from kivymd.uix.list import ThreeLineAvatarListItem
 from kivymd.uix.screen import MDScreen
 from pygments.lexers import MarkdownLexer
@@ -296,9 +298,15 @@ class MainScreen(MDScreen):
         left_container.add_widget(
             MDIconButton(icon="delete", on_release=lambda x: self.delete_node(button))
         )
+        left_container.remove_widget(left_container.children[2])
+        left_container.add_widget(
+            MDIconButton(
+                icon="file", on_release=lambda x: self.open_md_file_in_browser(button)
+            )
+        )
         left_container.pos_hint = {"y": -0.05}
         left_container.children[0].pos_hint = {"right": 0.6}
-        left_container.children[2].pos_hint = {"right": 0.6}
+        left_container.children[1].pos_hint = {"right": 0.6}
 
         text_container = button.ids._text_container
         text_container.pos_hint = {"right": 0.92}
@@ -313,6 +321,17 @@ class MainScreen(MDScreen):
         color = self.pick_importance_colour(result / len(dir_node.importance))
         dir_node.line_color = color
 
+    def open_md_file_in_browser(self, button):
+        app = App.get_running_app()
+        text = app.read_md_file(button.timestamp, button.path)
+        html_text = markdown.markdown(text, extensions=["extra"])
+        html_file = button.timestamp.removesuffix(".md") + ".html"
+        html_file_path = os.path.join(button.path, html_file)
+        with open(html_file_path, "w") as file:
+            file.write(html_text)
+
+        webbrowser.open(html_file_path)
+        os.remove(html_file_path)
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
@@ -330,7 +349,8 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
 
     def set_button_icon_color(self, color):
         self.ids._left_container.children[0].children[0].color = color
-        self.ids._left_container.children[2].children[0].color = color
+        self.ids._left_container.children[1].children[0].color = color
+        pass
 
 
 class MDButtonLabel(ButtonBehavior, MDLabel):
