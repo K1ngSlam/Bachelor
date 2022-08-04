@@ -12,9 +12,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
-from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDIconButton
+from kivymd.uix.button import MDFlatButton, MDIconButton
 from kivymd.uix.chip import MDChip
-from kivymd.uix.label import MDLabel, MDIcon
+from kivymd.uix.label import MDLabel
 from kivymd.uix.list import ThreeLineAvatarListItem
 from kivymd.uix.screen import MDScreen
 from pygments.lexers import MarkdownLexer
@@ -44,7 +44,7 @@ class MainScreen(MDScreen):
     def create_yaml(self, markdown_timestamp):
         yamlName = markdown_timestamp + ".yaml"
         app = App.get_running_app()
-        data = {"type": "node", "title": markdown_timestamp, "importance": 5}
+        data = {"type": "node", "title": markdown_timestamp, "importance": 1}
         app.save_to_yaml_file(yamlName, app.directory_path, data)
 
     def pick_importance_colour(self, importance):
@@ -144,7 +144,7 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         codeinput = self.ids.box_for_codeinput
         instance = app.focused_md_file
-        text = App.get_running_app().read_md_file(instance.timestamp, instance.path)
+        text = app.read_md_file(instance.timestamp, instance.path)
         codeinput.lexer = MarkdownLexer()
         codeinput.is_current_lexer_markdown = True
         codeinput.text = text
@@ -153,6 +153,7 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         instance = app.focused_md_file
         codeinput = self.ids.box_for_codeinput
+        codeinput.cursor = (0, 0)
         content = app.read_yaml_file(instance.timestamp, instance.path)
         codeinput.lexer = YamlLexer()
         codeinput.is_current_lexer_markdown = False
@@ -332,6 +333,7 @@ class MainScreen(MDScreen):
 
         webbrowser.open(html_file_path)
         os.remove(html_file_path)
+
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
     app = App.get_running_app()
