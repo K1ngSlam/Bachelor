@@ -44,13 +44,13 @@ class MainScreen(MDScreen):
     def create_yaml(self, markdown_timestamp):
         yamlName = markdown_timestamp + ".yaml"
         app = App.get_running_app()
-        data = {"type": "node", "title": markdown_timestamp, "importance": 1}
+        data = {"type": "node", "title": markdown_timestamp, "timestamp": markdown_timestamp, "importance": 1}
         app.save_to_yaml_file(yamlName, app.directory_path, data)
 
     def pick_importance_colour(self, importance):
         if importance <= 0:
             return 1, 1, 1, 1
-        if importance < 3:
+        if 0 < importance < 3:
             return "#57FF54"
         if 5 > importance >= 3:
             return "#EBB221"
@@ -71,17 +71,17 @@ class MainScreen(MDScreen):
             if not (file.is_file() and file.name.endswith(".yaml")):
                 continue
             content = app.read_yaml_file(file.name, path)
-            title = self.get_node_title(content, file)
-            timestamp = file.name.removesuffix(".yaml")
-            tags = " "
+            title = content.get("title", file.name.removesuffix(".yaml"))
+            file_name = file.name.removesuffix(".yaml")
+            tags = content.get("tags", [])
             importance = content.get("importance", 0)
             color = self.pick_importance_colour(importance)
-            if "type" in content and content["type"] == "node":
-                if "tags" in content:
-                    if parent is not None and parent.text not in content.get("tags"):
-                        content["tags"].append(parent.text)
-                        app.save_to_yaml_file(file.name, path, content)
-                    tags = self.get_formatted_node_tags(content)
+            if "type" in content and content.get("type") == "node":
+                if parent is not None and parent.text not in tags:
+                    content["tags"] = tags
+                    tags.append(parent.text)
+                    app.save_to_yaml_file(file.name, path, content)
+                tags = self.get_formatted_node_tags(content)
 
                 is_in_search = search is not None and (
                     search in title or search in tags
@@ -93,7 +93,7 @@ class MainScreen(MDScreen):
                         tertiary_text=" ",
                         icon="file",
                         path=file.path.removesuffix(file.name),
-                        timestamp=timestamp,
+                        timestamp=file_name,
                         on_touch_down=self.on_pressed,
                     )
                     self.set_default_values_treeviewbutton(button)
@@ -108,7 +108,7 @@ class MainScreen(MDScreen):
                         secondary_text=tags,
                         tertiary_text=" ",
                         path=file.path.removesuffix(file.name),
-                        timestamp=timestamp,
+                        timestamp=file_name,
                         on_touch_down=self.on_pressed,
                     )
                     parent.importance.append(importance)
@@ -121,12 +121,11 @@ class MainScreen(MDScreen):
     def on_pressed(self, instance, touch):
         App.get_running_app().focused_md_file = instance
         if touch.button == "right":
-            self.edit_yaml_file()
-            self.display_title()
+            self.write_yaml_to_codeinput()
         else:
-            self.write_text_to_codeinput()
-            self.display_title()
-            self.display_tags()
+            self.write_md_to_codeinput()
+        self.display_title()
+        self.display_tags()
 
     def delete_node(self, instance):
         codeinput = self.ids.box_for_codeinput
@@ -140,7 +139,7 @@ class MainScreen(MDScreen):
 
         self.refresh()
 
-    def write_text_to_codeinput(self):
+    def write_md_to_codeinput(self):
         app = App.get_running_app()
         codeinput = self.ids.box_for_codeinput
         instance = app.focused_md_file
@@ -149,7 +148,7 @@ class MainScreen(MDScreen):
         codeinput.is_current_lexer_markdown = True
         codeinput.text = text
 
-    def edit_yaml_file(self):
+    def write_yaml_to_codeinput(self):
         app = App.get_running_app()
         instance = app.focused_md_file
         codeinput = self.ids.box_for_codeinput
@@ -227,7 +226,7 @@ class MainScreen(MDScreen):
         content["tags"].append(tag_name)
         app.save_to_yaml_file(instance.timestamp, instance.path, content)
         if not self.ids.box_for_codeinput.is_current_lexer_markdown:
-            self.edit_yaml_file()
+            self.write_yaml_to_codeinput()
 
         self.popup.dismiss()
         self.popup.dismiss()
@@ -244,19 +243,11 @@ class MainScreen(MDScreen):
             app.focused_md_file.timestamp, app.focused_md_file.path, content
         )
         if not self.ids.box_for_codeinput.is_current_lexer_markdown:
-            self.edit_yaml_file()
-
-    def get_node_title(self, content, file):
-        if not ("title" in content):
-            title = file.name.removesuffix(".yaml")
-            return title
-        else:
-            title = content.get("title")
-            return title
+            self.write_yaml_to_codeinput()
 
     def get_formatted_node_tags(self, content):
         tags = ""
-        for tag in content.get("tags"):
+        for tag in content.get("tags", []):
             tags += "[color=#ff0000]#[/color]" + tag + " "
 
         return tags

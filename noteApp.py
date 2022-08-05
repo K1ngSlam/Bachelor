@@ -68,7 +68,7 @@ class NoteApp(MDApp):
                 return yaml.load(file, Loader=yaml.FullLoader)
         else:
             with open(os.path.join(path, str(file_name) + ".yaml"), "r") as file:
-                return yaml.load(file, Loader=yaml.Loader)
+                return yaml.load(file, Loader=yaml.FullLoader)
 
     def save_to_yaml_file(self, file_name, path, data):
         if str(file_name).endswith(".yaml"):
