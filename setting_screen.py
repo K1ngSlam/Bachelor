@@ -21,7 +21,7 @@ class SettingScreen(MDScreen):
                 "height": dp(56),
                 "on_release": lambda x=app.config.get(
                     "recent", str(i)
-                ): self.menu_callback(x)
+                ): self.menu_callback(x),
             }
             for i in range(1, recent_count + 1)
         ]
@@ -60,9 +60,9 @@ class SettingScreen(MDScreen):
         self.update_menu()
 
         Snackbar(text="[color=#ddbb34]" + new_dir_path + "[/color]").open()
+
     def change_directory_path(self):
         app = App.get_running_app()
-        duplicates = True
         new_dir_path = self.ids.set_md_directory.text
         max_value = app.config.getint("recent", "maxvalue")
         recent_count = app.config.getint("recent", "count")
@@ -72,8 +72,7 @@ class SettingScreen(MDScreen):
             if new_dir_path == app.config.get("recent", str(i)):
                 self.change_to_path_from_history(new_dir_path, str(i))
                 return
-        duplicates = False
-        if recent_count + 1 <= max_value and not duplicates:
+        if recent_count + 1 <= max_value:
             app.config["recent"][str(recent_count + 1)] = app.directory_path
             app.directory_path = new_dir_path
             app.config["workingdirectory"]["current"] = new_dir_path
@@ -81,8 +80,8 @@ class SettingScreen(MDScreen):
             app.config.write()
             self.update_menu()
         else:
-            for i in range(1, recent_count - 1):
+            for i in range(1, recent_count):
                 app.config["recent"][str(i)] = app.config["recent"][str(i + 1)]
-            app.config["recent"][str(max_value)] = new_dir_path
+            app.config["recent"][str(max_value)] = app.directory_path
             self.set_cur_and_working_dir_path(new_dir_path)
             self.update_menu()
