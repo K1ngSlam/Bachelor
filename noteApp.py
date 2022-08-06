@@ -1,7 +1,7 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
@@ -21,8 +21,9 @@ class NoteApp(MDApp):
             "workingdirectory",
             {"current": "/home/ubuntu/PycharmProjects/Bachelor/working_directory"},
         )
-        config.setdefaults("recent", {"count": 1, "maxvalue": 5})
+        config.setdefaults("recent", {"count": 1, "maxvalue": 5}),
 
+        config.setdefaults("directories", {"show_empty": False})
     def get_application_config(self, defaultpath="%(appdir)s/%(appname)s.ini"):
 
         return super().get_application_config(defaultpath)
@@ -71,6 +72,8 @@ class NoteApp(MDApp):
                 return yaml.load(file, Loader=yaml.FullLoader)
 
     def save_to_yaml_file(self, file_name, path, data):
+        if type(data) != dict:
+            data = yaml.load(data, Loader=yaml.FullLoader)
         if str(file_name).endswith(".yaml"):
             with open(os.path.join(path, str(file_name)), "w") as file:
                 yaml.dump(data, file)

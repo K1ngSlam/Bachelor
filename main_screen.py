@@ -44,7 +44,12 @@ class MainScreen(MDScreen):
     def create_yaml(self, markdown_timestamp):
         yamlName = markdown_timestamp + ".yaml"
         app = App.get_running_app()
-        data = {"type": "node", "title": markdown_timestamp, "timestamp": markdown_timestamp, "importance": 1}
+        data = {
+            "type": "node",
+            "title": markdown_timestamp,
+            "timestamp": markdown_timestamp,
+            "importance": 1,
+        }
         app.save_to_yaml_file(yamlName, app.directory_path, data)
 
     def pick_importance_colour(self, importance):
@@ -59,6 +64,7 @@ class MainScreen(MDScreen):
 
     def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
+        show_empty = app.config.getboolean("directories", "show_empty")
         for file in os.scandir(path):
             if file.is_dir():
                 tree_node = tree_view.add_node(
@@ -66,8 +72,9 @@ class MainScreen(MDScreen):
                 )
                 tree_view.toggle_node(tree_node)
                 self.populate_tree_view(tree_view, tree_node, file.path, search)
-                if search is not None and len(tree_node.nodes) == 0:
+                if search is not None and not show_empty and len(tree_node.nodes) == 0:
                     tree_view.remove_node(tree_node)
+
             if not (file.is_file() and file.name.endswith(".yaml")):
                 continue
             content = app.read_yaml_file(file.name, path)
@@ -86,37 +93,24 @@ class MainScreen(MDScreen):
                 is_in_search = search is not None and (
                     search in title or search in tags
                 )
-                if parent is None and is_in_search:
-                    button = TreeViewThreeLineAvatarListItem(
-                        text=title,
-                        secondary_text=tags,
-                        tertiary_text=" ",
-                        icon="file",
-                        path=file.path.removesuffix(file.name),
-                        timestamp=file_name,
-                        on_touch_down=self.on_pressed,
-                    )
-                    self.set_default_values_treeviewbutton(button)
-                    button.set_button_icon_color(color)
+                button = TreeViewThreeLineAvatarListItem(
+                    text=title,
+                    secondary_text=tags,
+                    tertiary_text=" ",
+                    icon="file",
+                    path=file.path.removesuffix(file.name),
+                    timestamp=file_name,
+                    on_touch_down=self.on_pressed,
+                )
+                self.set_default_values_treeviewbutton(button)
+                button.set_button_icon_color(color)
 
-                    tree_view.add_node(button)
+                if is_in_search:
+                    tree_view.add_node(button, parent)
 
-                if parent and is_in_search:
-                    button = TreeViewThreeLineAvatarListItem(
-                        icon="file",
-                        text=title,
-                        secondary_text=tags,
-                        tertiary_text=" ",
-                        path=file.path.removesuffix(file.name),
-                        timestamp=file_name,
-                        on_touch_down=self.on_pressed,
-                    )
+                if parent:
                     parent.importance.append(importance)
                     self.calc_dir_importance(parent)
-                    self.set_default_values_treeviewbutton(button)
-                    button.set_button_icon_color(color)
-
-                    tree_view.add_node(button, parent)
 
     def on_pressed(self, instance, touch):
         App.get_running_app().focused_md_file = instance
@@ -128,6 +122,7 @@ class MainScreen(MDScreen):
         self.display_tags()
 
     def delete_node(self, instance):
+        App.get_running_app().focused_md_file = None
         codeinput = self.ids.box_for_codeinput
         codeinput.text = ""
         tag_boxlayout = self.ids.chip_tags
@@ -135,7 +130,6 @@ class MainScreen(MDScreen):
         self.ids.md_header_label.text = ""
         os.remove(os.path.join(instance.path, instance.timestamp + ".md"))
         os.remove(os.path.join(instance.path, instance.timestamp + ".yaml"))
-        App.get_running_app().focused_md_file = None
 
         self.refresh()
 
@@ -290,7 +284,7 @@ class MainScreen(MDScreen):
         left_container.add_widget(
             MDIconButton(icon="delete", on_release=lambda x: self.delete_node(button))
         )
-        left_container.remove_widget(left_container.children[2])
+        left_container.remove_widget(left_container.children[1])
         left_container.add_widget(
             MDIconButton(
                 icon="file", on_release=lambda x: self.open_md_file_in_browser(button)
@@ -327,9 +321,6 @@ class MainScreen(MDScreen):
 
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
-    app = App.get_running_app()
-    timestamp = StringProperty("")
-    path = StringProperty(app.directory_path)
     importance = ListProperty()
 
 
@@ -337,7 +328,6 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     app = App.get_running_app()
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
-    source = StringProperty()
     icon = StringProperty()
 
     def set_button_icon_color(self, color):
