@@ -78,10 +78,10 @@ class SettingScreen(MDScreen):
             app.config["workingdirectory"]["current"] = new_dir_path
             app.config["recent"]["count"] = str(recent_count + 1)
             app.config.write()
-            self.update_menu()
         else:
             for i in range(1, recent_count):
                 app.config["recent"][str(i)] = app.config["recent"][str(i + 1)]
             app.config["recent"][str(max_value)] = app.directory_path
             self.set_cur_and_working_dir_path(new_dir_path)
-            self.update_menu()
+        self.update_menu()
+        Snackbar(text="[color=#ddbb34]" + new_dir_path + "[/color]").open()

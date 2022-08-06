@@ -224,7 +224,7 @@ class MainScreen(MDScreen):
             self.write_yaml_to_codeinput()
 
         self.popup.dismiss()
-        self.popup.dismiss()
+        self.refresh()
 
     def remove_tag(self, instance):
         app = App.get_running_app()
@@ -239,6 +239,8 @@ class MainScreen(MDScreen):
         )
         if not self.ids.box_for_codeinput.is_current_lexer_markdown:
             self.write_yaml_to_codeinput()
+
+        self.refresh()
 
     def get_formatted_node_tags(self, content):
         tags = ""
