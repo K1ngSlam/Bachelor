@@ -31,7 +31,6 @@ class MainScreen(MDScreen):
         self.refresh()
 
     def create_markdown(self):
-        self.ids.tree_views.clear_widgets()
         timestamp_now = str(datetime.now())
         timestamp_now = timestamp_now.replace(" ", "_")
         self.create_yaml(timestamp_now)
@@ -83,16 +82,19 @@ class MainScreen(MDScreen):
             tags = content.get("tags", [])
             importance = content.get("importance", 0)
             color = self.pick_importance_colour(importance)
+
             if "type" in content and content.get("type") == "node":
                 if parent is not None and parent.text not in tags:
                     content["tags"] = tags
                     tags.append(parent.text)
                     app.save_to_yaml_file(file.name, path, content)
                 tags = self.get_formatted_node_tags(content)
-
                 is_in_search = search is not None and (
                     search in title or search in tags
                 )
+                if not is_in_search:
+                    continue
+
                 button = TreeViewThreeLineAvatarListItem(
                     text=title,
                     secondary_text=tags,
@@ -105,12 +107,11 @@ class MainScreen(MDScreen):
                 self.set_default_values_treeviewbutton(button)
                 button.set_button_icon_color(color)
 
-                if is_in_search:
-                    tree_view.add_node(button, parent)
-
                 if parent:
                     parent.importance.append(importance)
                     self.calc_dir_importance(parent)
+
+                tree_view.add_node(button, parent)
 
     def on_pressed(self, instance, touch):
         App.get_running_app().focused_md_file = instance

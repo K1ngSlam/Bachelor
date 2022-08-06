@@ -54,7 +54,7 @@ class SettingScreen(MDScreen):
         app.config["workingdirectory"]["current"] = new_dir_path
         app.config.write()
 
-    def change_md_directory_path(self):
+    def change_directory_path(self):
         app = App.get_running_app()
         new_dir_path = self.ids.set_md_directory.text
         max_value = app.config.getint("recent", "maxvalue")

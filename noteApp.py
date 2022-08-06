@@ -24,6 +24,7 @@ class NoteApp(MDApp):
         config.setdefaults("recent", {"count": 1, "maxvalue": 5}),
 
         config.setdefaults("directories", {"show_empty": False})
+
     def get_application_config(self, defaultpath="%(appdir)s/%(appname)s.ini"):
 
         return super().get_application_config(defaultpath)
