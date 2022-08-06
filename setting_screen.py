@@ -21,7 +21,7 @@ class SettingScreen(MDScreen):
                 "height": dp(56),
                 "on_release": lambda x=app.config.get(
                     "recent", str(i)
-                ): self.menu_callback(x, str(i)),
+                ): self.menu_callback(x)
             }
             for i in range(1, recent_count + 1)
         ]
@@ -30,19 +30,14 @@ class SettingScreen(MDScreen):
     def on_pre_enter(self, *args):
         self.ids.set_md_directory.text = App.get_running_app().directory_path
 
-    def menu_callback(self, text_item, number):
+    def menu_callback(self, path):
         app = App.get_running_app()
         self.menu.dismiss()
-        self.ids.set_md_directory.text = str(text_item)
-        dummy = app.config["recent"][number]
-        app.config["recent"][number] = app.directory_path
-        app.config["workingdirectory"]["current"] = dummy
-        app.directory_path = dummy
-
-        app.config.write()
-        self.update_menu()
-
-        Snackbar(text="[color=#ddbb34]" + text_item + "[/color]").open()
+        self.ids.set_md_directory.text = str(path)
+        recent_count = app.config.getint("recent", "count")
+        for i in range(1, recent_count + 1):  # find new dir path in the recent dict
+            if path == app.config.get("recent", str(i)):
+                self.change_to_path_from_history(str(path), str(i))
 
     def callback(self, button):
         self.menu.caller = button
@@ -54,8 +49,20 @@ class SettingScreen(MDScreen):
         app.config["workingdirectory"]["current"] = new_dir_path
         app.config.write()
 
+    def change_to_path_from_history(self, new_dir_path, number):
+        app = App.get_running_app()
+        new_dir_path = app.config["recent"][number]
+        app.config["recent"][number] = app.directory_path
+        app.config["workingdirectory"]["current"] = new_dir_path
+        app.directory_path = new_dir_path
+
+        app.config.write()
+        self.update_menu()
+
+        Snackbar(text="[color=#ddbb34]" + new_dir_path + "[/color]").open()
     def change_directory_path(self):
         app = App.get_running_app()
+        duplicates = True
         new_dir_path = self.ids.set_md_directory.text
         max_value = app.config.getint("recent", "maxvalue")
         recent_count = app.config.getint("recent", "count")
@@ -63,16 +70,10 @@ class SettingScreen(MDScreen):
             return
         for i in range(1, recent_count + 1):  # find new dir path in the recent dict
             if new_dir_path == app.config.get("recent", str(i)):
-                self.set_cur_and_working_dir_path(new_dir_path)
+                self.change_to_path_from_history(new_dir_path, str(i))
                 return
-        if recent_count + 1 <= max_value:
-            for i in range(
-                1, recent_count + 1
-            ):  # find the current path in recent to not have duplicates
-                if app.directory_path == app.config.get("recent", str(i)):
-                    self.set_cur_and_working_dir_path(new_dir_path)
-                    self.update_menu()
-                    return
+        duplicates = False
+        if recent_count + 1 <= max_value and not duplicates:
             app.config["recent"][str(recent_count + 1)] = app.directory_path
             app.directory_path = new_dir_path
             app.config["workingdirectory"]["current"] = new_dir_path
