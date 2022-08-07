@@ -19,9 +19,9 @@ class NoteApp(MDApp):
     def build_config(self, config):
         config.setdefaults(
             "workingdirectory",
-            {"current": "%(appdir)s/%"},
+            {"current": os.getcwd()},
         )
-        config.setdefaults("recent", {"count": 1, "maxvalue": 5}),
+        config.setdefaults("recent", {"count": 0, "maxvalue": 5}),
 
         config.setdefaults("directories", {"show_empty": False})
 
