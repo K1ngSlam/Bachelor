@@ -39,7 +39,7 @@ class SettingScreen(MDScreen):
             if path == app.config.get("recent", str(i)):
                 self.change_to_path_from_history(str(path), str(i))
 
-    def callback(self, button):
+    def menu_open(self, button):
         self.menu.caller = button
         self.menu.open()
 

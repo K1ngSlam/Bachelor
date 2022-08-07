@@ -165,13 +165,10 @@ class MainScreen(MDScreen):
             instance.timestamp, instance.path
         )
 
-        if "tags" in content:
-            for tag in content.get("tags"):
-                chip = MDChip(
-                    text=tag, icon="close-circle-outline", pos_hint={"y": 0.25}
-                )
-                chip.bind(on_release=self.remove_tag)
-                tag_boxlayout.add_widget(chip)
+        for tag in content.get("tags", []):
+            chip = MDChip(text=tag, icon="close-circle-outline", pos_hint={"y": 0.25})
+            chip.bind(on_release=self.remove_tag)
+            tag_boxlayout.add_widget(chip)
 
     def display_title(self):
         app = App.get_running_app()
@@ -183,7 +180,7 @@ class MainScreen(MDScreen):
         search = self.ids.search_field.text
         self.ids.tree_views.clear_widgets()
         app = App.get_running_app()
-        tv = TreeView(hide_root=True, indent_level=8)
+        tv = TreeView(hide_root=True, indent_level=9)
         tv.size_hint = (1, None)
         tv.bind(minimum_height=tv.setter("height"))
         scroll_view = ScrollView(pos=(0, 0), effect_cls=ScrollEffect)
@@ -284,10 +281,11 @@ class MainScreen(MDScreen):
         left_container = button.ids._left_container
 
         left_container.orientation = "vertical"
+        left_container.clear_widgets()
         left_container.add_widget(
             MDIconButton(icon="delete", on_release=lambda x: self.delete_node(button))
         )
-        left_container.remove_widget(left_container.children[1])
+        # left_container.remove_widget(left_container.children[1])
         left_container.add_widget(
             MDIconButton(
                 icon="file", on_release=lambda x: self.open_md_file_in_browser(button)
@@ -306,7 +304,7 @@ class MainScreen(MDScreen):
     def calc_dir_importance(self, dir_node):
         result = 0
         for number in dir_node.importance:
-            result = +number
+            result = result + number
         color = self.pick_importance_colour(result / len(dir_node.importance))
         dir_node.line_color = color
 

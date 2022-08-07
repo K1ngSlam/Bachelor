@@ -33,6 +33,7 @@ MainScreen:
                     orientation: "horizontal"
                     MDIconButton:
                         icon: "note-search"
+                        on_release: root.refresh()
                     MDTextField:
                         id: search_field
                         color_mode: "accent"

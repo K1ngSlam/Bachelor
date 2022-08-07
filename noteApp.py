@@ -1,7 +1,7 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
@@ -19,7 +19,7 @@ class NoteApp(MDApp):
     def build_config(self, config):
         config.setdefaults(
             "workingdirectory",
-            {"current": "/home/ubuntu/PycharmProjects/Bachelor/working_directory"},
+            {"current": "%(appdir)s/%"},
         )
         config.setdefaults("recent", {"count": 1, "maxvalue": 5}),
 
