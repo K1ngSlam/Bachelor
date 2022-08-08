@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import yaml
 import webbrowser
@@ -48,7 +48,6 @@ class MainScreen(MDScreen):
         data = {
             "type": "node",
             "title": markdown_timestamp,
-            "timestamp": markdown_timestamp,
             "importance": 1,
         }
         app.save_to_yaml_file(yamlName, app.directory_path, data)
@@ -62,6 +61,18 @@ class MainScreen(MDScreen):
             return "#EBB221"
         if importance >= 5:
             return "#FF2E4D"
+
+    def calc_time_till_due_date(self, due_date, importance):
+        datetime_due_date = datetime.strptime(due_date, '%d-%m-%y %H:%M:%S')
+        delta = datetime_due_date - datetime.now()
+        if datetime_due_date < datetime.now() or delta > timedelta(13):
+            return importance
+        if delta <= timedelta(1) and importance < 5:
+            return 5
+        if delta <= timedelta(7) and importance <= 2:
+            return 3
+        if delta <= timedelta(13) and importance == 0:
+            return 1
 
     def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
@@ -83,8 +94,12 @@ class MainScreen(MDScreen):
             file_name = file.name.removesuffix(".yaml")
             tags = content.get("tags", [])
             importance = content.get("importance", 0)
+            if "due_date" in content:
+                due_date = content.get("due_date")
+                importance = self.calc_time_till_due_date(due_date, importance)
+                content["importance"] = importance
+                app.save_to_yaml_file(file.name, path, content)
             color = self.pick_importance_colour(importance)
-
             if "type" in content and content.get("type") == "node":
                 if parent is not None and parent.text not in tags:
                     content["tags"] = tags
