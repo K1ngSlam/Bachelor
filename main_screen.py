@@ -63,7 +63,7 @@ class MainScreen(MDScreen):
             return "#FF2E4D"
 
     def calc_time_till_due_date(self, due_date, importance):
-        datetime_due_date = datetime.strptime(due_date, '%d-%m-%y %H:%M:%S')
+        datetime_due_date = datetime.strptime(due_date, "%d-%m-%y %H:%M:%S")
         delta = datetime_due_date - datetime.now()
         if datetime_due_date < datetime.now() or delta > timedelta(13):
             return importance
@@ -353,6 +353,7 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
     icon = StringProperty()
+
     def set_button_icon_color(self, color):
         self.ids._left_container.children[0].children[0].color = color
         self.ids._left_container.children[1].children[0].color = color
