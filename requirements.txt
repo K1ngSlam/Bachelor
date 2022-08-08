@@ -1,0 +1,5 @@
+Kivy~=2.1.0
+kivymd~=0.104.2
+PyYAML~=6.0
+Markdown~=3.4.1
+Pygments~=2.11.2

@@ -33,6 +33,8 @@ class MainScreen(MDScreen):
     def create_markdown(self):
         timestamp_now = str(datetime.now())
         timestamp_now = timestamp_now.replace(" ", "_")
+        if os.name == "nt":
+            timestamp_now = timestamp_now.replace(":", "-")
         self.create_yaml(timestamp_now)
         open(
             os.path.join(App.get_running_app().directory_path, timestamp_now + ".md"),
@@ -318,7 +320,8 @@ class MainScreen(MDScreen):
             file.write(html_text)
 
         webbrowser.open(html_file_path)
-        os.remove(html_file_path)
+        if not os.name == "nt":
+            os.remove(html_file_path)
 
 
 class TreeViewButton(MDFlatButton, TreeViewNode):
