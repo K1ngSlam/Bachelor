@@ -73,6 +73,8 @@ class MainScreen(MDScreen):
             return 3
         if delta <= timedelta(13) and importance == 0:
             return 1
+        else:
+            return importance
 
     def populate_tree_view(self, tree_view, parent, path, search):
         app = App.get_running_app()
@@ -295,6 +297,7 @@ class MainScreen(MDScreen):
         md_header_input.opacity = 1
 
     def set_default_values_treeviewbutton(self, button):
+        button.height = 92
         left_container = button.ids._left_container
 
         left_container.orientation = "vertical"
@@ -302,7 +305,6 @@ class MainScreen(MDScreen):
         left_container.add_widget(
             MDIconButton(icon="delete", on_release=lambda x: self.delete_node(button))
         )
-        # left_container.remove_widget(left_container.children[1])
         left_container.add_widget(
             MDIconButton(
                 icon="file", on_release=lambda x: self.open_md_file_in_browser(button)
@@ -314,9 +316,12 @@ class MainScreen(MDScreen):
 
         text_container = button.ids._text_container
         text_container.pos_hint = {"right": 0.92}
-
+        text_container.remove_widget(text_container.children[0])
         for label in text_container.children:
+            label.shorten = False
             label.size_hint_x = 1.3
+            label.text_size = label.size
+            label.max_lines = 2
 
     def calc_dir_importance(self, dir_node):
         result = 0
@@ -348,7 +353,6 @@ class TreeViewThreeLineAvatarListItem(ThreeLineAvatarListItem, TreeViewNode):
     timestamp = StringProperty("")
     path = StringProperty(app.directory_path)
     icon = StringProperty()
-
     def set_button_icon_color(self, color):
         self.ids._left_container.children[0].children[0].color = color
         self.ids._left_container.children[1].children[0].color = color
