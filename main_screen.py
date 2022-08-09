@@ -134,6 +134,7 @@ class MainScreen(MDScreen):
 
     def on_pressed(self, instance, touch):
         App.get_running_app().focused_md_file = instance
+        self.ids.node_name.text = instance.timestamp
         if touch.button == "right":
             self.write_yaml_to_codeinput()
         else:
@@ -195,6 +196,9 @@ class MainScreen(MDScreen):
         instance = app.focused_md_file
         content = app.read_yaml_file(instance.timestamp, instance.path)
         self.ids.md_header_label.text = content.get("title")
+
+    def update_cursor(self):
+        self.ids.cursor_pos.text = str(self.ids.box_for_codeinput.cursor)
 
     def refresh(self):
         search = self.ids.search_field.text

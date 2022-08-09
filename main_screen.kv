@@ -78,5 +78,14 @@ MainScreen:
                 CustomCodeInput:
                     id: box_for_codeinput
                     text: "This is a Node"
+                    on_cursor: root.update_cursor()
 
-
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint: 1, None
+                    size: (15,15)
+                    MDLabel:
+                        id: cursor_pos
+                    MDLabel:
+                        id: node_name
+                        pos_hint: {"x": 0.5}
