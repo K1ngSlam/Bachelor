@@ -161,16 +161,17 @@ class MainScreen(MDScreen):
         codeinput.lexer = MarkdownLexer()
         codeinput.is_current_lexer_markdown = True
         codeinput.text = text
+        codeinput.cursor = (0, 0)
 
     def write_yaml_to_codeinput(self):
         app = App.get_running_app()
         instance = app.focused_md_file
         codeinput = self.ids.box_for_codeinput
-        codeinput.cursor = (0, 0)
         content = app.read_yaml_file(instance.timestamp, instance.path)
         codeinput.lexer = YamlLexer()
         codeinput.is_current_lexer_markdown = False
         codeinput.text = yaml.dump(content)
+        codeinput.cursor = (0, 0)
 
     def display_tags(self):
         app = App.get_running_app()
