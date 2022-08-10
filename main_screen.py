@@ -24,7 +24,6 @@ from pygments.lexers import YamlLexer
 class MainScreen(MDScreen):
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.first_entered = False
         self.popup = None
 
     def on_pre_enter(self, *args):
